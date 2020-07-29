@@ -1,0 +1,34 @@
+open Core
+open Async
+open Cohttp
+open Cohttp_async
+
+module Auth = struct
+  let uri = "https://api.tdameritrade.com/v1/oauth2/token"
+  (*
+     Sexp for authentication.
+  *)
+
+  type body = {
+    grant_type : string;
+    refresh_token : string option;
+    access_type : string option;
+    code : string;
+    client_id : string;
+    redirect_uri : string;
+  } [@@deriving sexp]
+
+  let access_token_req ?body conf ~meth ~conkey =
+    let uri = sprintf "%s@AMER.OAUTHAP" conkey |> Uri.of_string in
+    let headers =
+      match meth with
+      | `POST | `GET -> begin
+          [("Content-Type", "application/x-www-form-urlencoded")]
+        end
+      | _ -> [] in
+    let request = Request.make ~meth ~headers:(Header.of_list headers) uri in
+    let request = {request with Cohttp.Request.headers} in
+    match meth with
+    | `POST -> Client.request 
+  
+end
