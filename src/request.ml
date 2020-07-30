@@ -27,3 +27,16 @@ let api_options ?(cusip="") ?(index="") ?(symbol="") ?(orderid="") ?(accountid="
   in
   url
   (* TODO: Add watchlist, userinfo, and transaction history APIs *)
+
+type api_params =
+  { cusip : string option;
+    index : string option;
+    symbol : string option;
+    orderid : string option;
+    accountid : string option;
+    savedorderid : string option;
+  } [@@deriving sexp]
+
+let build_req url params =
+  (* TDA only allows a single method for each of their APIs, so it is not a variable. *)
+  
