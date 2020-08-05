@@ -16,6 +16,10 @@ type auth_data = {
   redirect_uri : string;
 } [@@deriving sexp]
 
+(* turn above to {|name, val|} *)
+
+let () = printf "%s\n" (Sexp.to_string (sexp_of_auth_data { grant_type="refresh"; refresh_token="sadkniasid"; access_type="offline"; code="asdjwa"; client_id="cnstc"; redirect_uri="https://localhost:8443" }))
+
 
 let preprocess_data d =
   Cohttp_async.Body.of_string (Sexp.to_string (sexp_of_auth_data d))
