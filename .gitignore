@@ -1,3 +1,4 @@
 /src/_build
 /src/#auth.ml#
 /src/.#auth.ml
+/src/.merlin
