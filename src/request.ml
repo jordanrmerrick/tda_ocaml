@@ -43,7 +43,7 @@ type api_params =
 
 
 let parse_get_body body uri = body
-  |> List.map ~f:(fun (k, v) -> sprintf "?%s=%s" k v)
+  |> List.map ~f:(fun (k, v) -> sprintf "?%s=%s" k (String.concat ~sep:"," v))
   |> String.concat ~sep:""
   |> sprintf "%s%s" uri
 
