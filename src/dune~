@@ -1,4 +1,0 @@
-(executable
-  (name client)
-  (libraries core cohttp async cohttp-async)
-)
