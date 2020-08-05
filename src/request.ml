@@ -1,4 +1,7 @@
 open Core
+open Async
+open Cohttp
+open Cohttp_async
 
 let check_search str =
   sprintf "%sX" str
@@ -28,10 +31,7 @@ let api_options ?(cusip="") ?(index="") ?(symbol="") ?(orderid="") ?(accountid="
     | `GET_ACCOUNTS -> ("accounts", `GET)
   (* TODO: Add watchlist, userinfo, and transaction history APIs *)
 
-(*let parse_api_type apio =
-  match apio with
-  | (x, `POST) -> Client.post *)
-                       
+
 type api_params =
   { cusip : string option;
     index : string option;
@@ -47,9 +47,33 @@ let parse_get_body body uri = body
   |> String.concat ~sep:""
   |> sprintf "%s%s" uri
 
+let parse_body body = body
+                          |> List.map ~f:(fun (k, v) -> sprintf {|"%s" : "%s" |} k v)
+                          |> String.concat ~sep:", "
+                          |> sprintf "{%s}"
+                          |> Cohttp_async.Body.of_string
+                            
 
 let create_uri ?(body=[]) ~uri =
   let static = (fun (k, _) -> sprintf "https://api.tdameritrade.com/v1/%s" k) uri in
   match uri with
   | (_, `GET) -> parse_get_body body static
-  | (_, _) -> static
+  | _ -> static
+
+
+let handle_resp (resp, body) =
+  match resp with
+  | { Cohttp.Response.status = `OK; _ } -> Body.to_string body
+  | { Cohttp.Response.status = _; _ } -> raise_s (Sexp.of_string "Invalid response code")
+
+let make_client_req uri body headers =
+  let uri_ = uri |> fun (k, _) -> Uri.of_string k in 
+  let header = Header.of_list headers in
+  let body_ = parse_body body in
+  match uri with
+  | (_, `GET) -> Client.get ~headers:header uri_ >>= fun (resp, body) -> handle_resp (resp, body)
+  | (_, `POST) -> Client.post ~body:body_ ~headers:header uri_ >>= fun (resp, body) -> handle_resp (resp, body)
+  | (_, `PUT) -> Client.put ~body:body_ ~headers:header uri_ >>= fun (resp, body) -> handle_resp (resp, body)
+  | (_, `DELETE) -> Client.delete ~headers:header uri_ >>= fun (resp, body) -> handle_resp (resp, body)
+  | (_, _) -> raise_s (Sexp.of_string "Invalid method, how did you do this?!")
+
