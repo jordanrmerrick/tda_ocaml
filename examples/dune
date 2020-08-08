@@ -1,0 +1,4 @@
+(executable
+  (name market_hours)
+  (libraries core tda_ocaml)
+)

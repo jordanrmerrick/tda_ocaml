@@ -18,5 +18,5 @@ tda_ocaml is a fully function wrapper for TDAmeritrade's API, built in an effort
 
 ## Examples
 
-### Requesting market hours and sending them to a JSON file.
+#### Requesting market hours and sending them to a JSON file.
 
