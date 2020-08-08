@@ -1,5 +1,5 @@
 (executable
-  (name tda_ocaml)
-  (libraries core cohttp async cohttp-async sexplib0)
+  (name credentials)
+  (libraries core cohttp async cohttp-async sexplib0 yojson textwrap)
   (preprocess (pps ppx_sexp_conv ppx_fields_conv))
 )

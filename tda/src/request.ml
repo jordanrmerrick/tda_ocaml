@@ -45,9 +45,12 @@ let create_uri ?(body=[]) ~uri =
   | (_, _) -> static
 
 let imm_handle_resp (resp, body) =
-  match resp with
-  | { Cohttp.Response.status = `OK; _ } -> Body.to_string body
-  | { Cohttp.Response.status= _; _ } -> raise_s (Sexp.of_string "Invalid resp")
+  let code = resp |> Response.status |> Code.code_of_status in
+  printf "Response Code: %d\n" code;
+  printf "Headers: %s\n" (resp |> Response.headers |> Header.to_string);
+  body |> Cohttp_async.Body.to_string >>| fun body ->
+  printf "Body of length: %d\n" (String.length body);
+  body
 
 let make_client_req ~uri ~body ~headers =
   let uri_ = Uri.of_string (create_uri ~body:body ~uri:uri) in
@@ -59,15 +62,3 @@ let make_client_req ~uri ~body ~headers =
   | (_, `PUT) -> Client.put ~body:body_ ~headers:header uri_ >>= fun (resp, body) -> imm_handle_resp (resp, body)
   | (_, `DELETE) -> Client.delete ~headers:header uri_ >>= fun (resp, body) -> imm_handle_resp (resp, body)
   | (_, _) -> raise_s (Sexp.of_string "Invalid method, how did you do this?!")
-
-let () =
-  let uri = (api_options ~symbol:"AAPL" `PRICE_HISTORY) in
-  let body = [("apikey", "asndiw1902139hdsa");
-              ("markets", "EQUITY,FUTURE,FOREX");
-              ("date", "2020-08-06")] in
-  let headers = [("Authorization", "Adasiodiidbasd")] in
-  let mc = (make_client_req ~uri:uri ~body:body ~headers:headers) in
-  upon mc
-    (fun line -> print_endline line)
-
-
