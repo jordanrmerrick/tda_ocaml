@@ -1,0 +1,5 @@
+opam pin add core
+opam pin add yojson
+opam pin add async
+opam pin add cohttp
+opam pin add cohttp-async
