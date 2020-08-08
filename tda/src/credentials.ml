@@ -1,7 +1,8 @@
-open Yojson.Basic.Util
+open Yojson.Safe.Util
+       
 
 let read_from_json j =
-  Yojson.Basic.from_file j
+  Yojson.Safe.from_file j
 
 let read_credentials json =
   let _json = read_from_json json in
