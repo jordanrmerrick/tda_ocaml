@@ -7,7 +7,7 @@ license: "MIT"
 name: "tda_ocaml"
 version: "0.1"
 build: [
-    ["dune" "build" name]
+    ["dune" "build" "-p" name "-j" jobs]
 ]
 depends: [
     "ocaml" {>= "4.07.0"}
