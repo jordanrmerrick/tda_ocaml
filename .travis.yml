@@ -5,14 +5,12 @@ services:
 - docker
 env:
   global:
-  - PINS="msat:. msat-bin:."
   - DISTRO="ubuntu-16.04"
   matrix:
-  - PACKAGE="msat" CAML_VERSION="4.03"
-  - PACKAGE="msat" CAML_VERSION="4.04"
-    #- PACKAGE="msat" CAML_VERSION="4.05"
-  - PACKAGE="msat" CAML_VERSION="4.06"
-    #- PACKAGE="msat" CAML_VERSION="4.08"
-  - PACKAGE="msat" CAML_VERSION="4.09"
-    #- PACKAGE="msat" CAML_VERSION="4.10"
-    #- PACKAGE="msat-bin" CAML_VERSION="4.06" TESTS=false
+  - PACKAGE="tda_ocaml" CAML_VERSION="4.03"
+  - PACKAGE="tda_ocaml" CAML_VERSION="4.04"
+    #- PACKAGE="tda_ocaml" CAML_VERSION="4.05"
+  - PACKAGE="tda_ocaml" CAML_VERSION="4.06"
+    #- PACKAGE="tda_ocaml" CAML_VERSION="4.08"
+  - PACKAGE="tda_ocaml" CAML_VERSION="4.09"
+    #- PACKAGE="tda_ocaml" CAML_VERSION="4.10"
