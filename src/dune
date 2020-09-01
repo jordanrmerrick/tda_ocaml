@@ -1,5 +1,5 @@
 (executable
-  (name credentials)
+  (name tda)
   (libraries core cohttp async cohttp-async yojson str)
   (preprocess (pps ppx_sexp_conv ppx_fields_conv))
 )

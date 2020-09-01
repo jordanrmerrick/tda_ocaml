@@ -76,7 +76,7 @@ module Compat = struct
     String.concat ~sep:"" (List.map ~f:encoded (string_to_string_list s))
 
   (* Sigh .. This URL decoding function isn't the best and has a couple exceptions that won't be met by the URLs being fed into it, yet is frustrating nonetheless.
-     This will probably be replaced by a set of Buffer functions at some point in the future.*)
+     This will probably be replaced by a buffer at some point. *)
   let decode_url s =
     let rec helper ls arr n =
       match n with
@@ -171,8 +171,8 @@ module Authentication = struct
     in
     parse_special_chars c
   
-  let get_code_info =
-    printf "Open this url in your browser and login:\n%s" sent_url;
+  let get_code_info s = 
+    printf "Open this url in your browser and login:\n%s" s;
     printf "\n\nEnter the returned url into \"code.json\"\n\n"
 
   let build_code = 
