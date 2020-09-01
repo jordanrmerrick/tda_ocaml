@@ -16,7 +16,12 @@ tda_ocaml is a fully function wrapper for TDAmeritrade's API, built in an effort
 - Automate trading in any way.
 - Make API calls without your explicit permission - requesting data from one API will never request from another.
 
-## Examples
+## TODO
+### Change Command.Spec() to Command.Param()
+- Command.Spec() is outdated and is a lot more complex. Changing to Command.Param() will allow for external variables to be applied to `access_token_reg` and `access_token_initial`.
 
-#### Requesting market hours and sending them to a JSON file.
+### Write Tokens to JSON
+- Use `Credentials.write_tokens` to write tokens (Deferred.t string list) to token_list.
+- Pattern match list values
 
+### Better 
