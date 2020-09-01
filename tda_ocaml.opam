@@ -4,6 +4,8 @@ authors: ["Jordan Merrick <jordanmerrick@me.com>"]
 homepage: "https://github.com/tottenhamjm/tda_ocaml"
 bug-reports: "https://github.com/tottenhamjm/tda_ocaml/issues"
 license: "MIT"
+name: "tda_ocaml"
+version: "0.1"
 build: [
     ["dune" "build" name]
 ]
