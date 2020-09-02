@@ -166,17 +166,24 @@ module Authentication = struct
     | [] -> ""
     | x::_ -> x
 
-  let sent_url =
-    let c = read_credentials "credentials.json" in
+  (* Exposed API for initial authorization*)
+  let sent_url ?(redirecturi="") ?(clientid="") ~(m : string) =
+    let meth m =
+      match String.lowercase m with
+      | "json" -> let c = read_credentials "credentials.json" in c
+      | "string" -> (clientid, redirecturi)
+      | _ -> raise_s (Sexp.of_string "Invalid_argument")
+    in
     let parse_special_chars data =
       let url data =(fun (k,v) -> sprintf "redirect_uri=%s&clientid=%s@AMER.OAUTHAP" v k) data in
       sprintf "https://auth.tdameritrade.com/auth?response_type=code&%s" (Compat.encode_url (url data))
     in
-    parse_special_chars c
+    parse_special_chars (meth m)
   
-  let get_code_info s = 
+  let get_code_info (s : string) = 
     printf "Open this url in your browser and login:\n%s" s;
-    printf "\n\nEnter the returned url into \"code.json\"\n\n"
+    print_endline "\n\nEnter the returned url into \"code.json\"\n\n";
+    print_endline "Change the \"exists\" entry to \"true\". Initial authorization is complete!\n\n"
 
   let build_code = 
     let element = get_first_element (Str.split (Str.regexp "code=?") ((fun (k,_) -> k) (Credentials.read_code "code.json"))) in
@@ -232,10 +239,17 @@ module Authentication = struct
     let body = parse_body build_body in
     Cohttp_async.Client.post ~body:body ~headers:headers uri >>= fun (_, body) -> Cohttp_async.Body.to_string body >>| fun string -> (Json.to_json ~json:string)
 
-  let get_tokens_reg requests =
-    Deferred.all (List.map requests ~f:access_token) >>| fun results -> results
+  let get_tokens_reg ?(filename="generic.json") requests ~output =
+    let cycle s = List.map ~f:(Jsonhandling.to_json_object ~jsonfile:filename ~output:output) s in
+    match List.length requests with
+    | 0 -> raise_s (Sexp.of_string "Expected 1 argument, got 0")
+    | 1 -> Deferred.all (List.map requests ~f:access_token) >>| fun results -> cycle results
+    | _ as k -> let n = k |> sprintf "Expected 1 argument, got %d" in raise_s (Sexp.of_string n)
 
   let get_tokens_initial requests =
-    Deferred.all (List.map requests ~f:initial_access_token) >>| fun results -> results
+    match List.length requests with
+    | 0 -> raise_s (Sexp.of_string "Expected 1 argument, got 0")
+    | 1 -> Deferred.all (List.map requests ~f:initial_access_token) >>| fun results -> results
+    | _ as k -> let n = k |> sprintf "Expected 1 argument, got %d" in raise_s (Sexp.of_string n)
 
 end

@@ -28,3 +28,20 @@ let json_handle ~json ~order_type =
     in
     helper returned_list []
   | _ -> []
+
+let to_file (json : Yojson.Safe.t) ~(jsonfile : string) =
+  Yojson.Safe.to_file jsonfile json
+
+let to_json_object ?(jsonfile="generic.json") ~output json =
+  let is_json_file filename suffix =
+    String.is_substring ~substring:suffix filename
+  in
+  if (is_json_file jsonfile ".json") then
+  begin
+    match output with
+    | `Raw -> `Raw json
+    | `Json_file -> `Json_file (to_file json ~jsonfile:jsonfile)
+    | `String_output -> `String_output (Yojson.Safe.to_string json)
+    | _ -> raise_s (Sexp.of_string "Invalid output format")
+  end
+  else raise_s (Sexp.of_string "No .json suffix found")
