@@ -239,8 +239,8 @@ module Authentication = struct
     let body = parse_body build_body in
     Cohttp_async.Client.post ~body:body ~headers:headers uri >>= fun (_, body) -> Cohttp_async.Body.to_string body >>| fun string -> (Json.to_json ~json:string)
 
-  let get_tokens_reg ?(filename="generic.json") requests ~output =
-    let cycle s = List.map ~f:(Jsonhandling.to_json_object ~jsonfile:filename ~output:output) s in
+  let get_tokens_reg ?(filename="generic.json") requests ~(output : string) =
+    let cycle s = List.map ~f:(Jsonhandling.handle_json ~jsonfile:filename ~outfile:output) s in
     match List.length requests with
     | 0 -> raise_s (Sexp.of_string "Expected 1 argument, got 0")
     | 1 -> Deferred.all (List.map requests ~f:access_token) >>| fun results -> cycle results
