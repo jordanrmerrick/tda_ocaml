@@ -135,6 +135,9 @@ module Json = struct
     in
     List.map ~f:matcher (find_all_values ~json:json)
 
+  let to_json ~(json : string) =
+    Yojson.Safe.from_string json
+
 end
 
 module Authentication = struct
@@ -206,7 +209,7 @@ module Authentication = struct
       (fun (k,v) -> req k v) build
     in
     let body = parse_body build_body in
-    Cohttp_async.Client.post ~body:body ~headers:headers uri >>= fun (_, body) -> Cohttp_async.Body.to_string body >>| fun string -> (Json.find_all_values_exn ~json:string)
+    Cohttp_async.Client.post ~body:body ~headers:headers uri >>= fun (_, body) -> Cohttp_async.Body.to_string body >>| fun string -> (Json.to_json ~json:string)
 
 
   let access_token ?(token_source="tokens.json") ?(credentials_source="credentials.json") (code : string)=
@@ -227,43 +230,12 @@ module Authentication = struct
       req ~client_id:((fun (k,_) -> k) creds) ~redirect:((fun (_,v) -> v) creds) ~refresh_token:((fun (_,j,_) -> j) tokens)
     in
     let body = parse_body build_body in
-    Cohttp_async.Client.post ~body:body ~headers:headers uri >>= fun (_, body) -> Cohttp_async.Body.to_string body >>| fun string -> (Json.find_all_values_exn ~json:string)
+    Cohttp_async.Client.post ~body:body ~headers:headers uri >>= fun (_, body) -> Cohttp_async.Body.to_string body >>| fun string -> (Json.to_json ~json:string)
 
   let get_tokens_reg requests =
-    let print_item ls = List.iter ~f:print_endline ls in
-    Deferred.all (List.map requests ~f:access_token) >>| fun results -> List.iter ~f:print_item results
+    Deferred.all (List.map requests ~f:access_token) >>| fun results -> results
 
   let get_tokens_initial requests =
-    let print_item ls = List.iter ~f:print_endline ls in
-    Deferred.all (List.map requests ~f:initial_access_token) >>| fun results -> List.iter ~f:print_item results
+    Deferred.all (List.map requests ~f:initial_access_token) >>| fun results -> results
 
 end
-
-let access_token_req =
-  Command.async_spec
-    ~summary:"Get TDA tokens - REGULAR"
-    Command.Spec.(
-      empty
-      +> anon (sequence ("code" %: string))
-    )
-    (fun code () -> Authentication.get_tokens_reg code)
-  |> Command.run
-
-let initial_access_token_req =
-  Command.async_spec
-    ~summary:"Get TDA tokens - INITIAL"
-    Command.Spec.(
-      empty
-      +> anon (sequence ("code" %: string))
-    )
-    (fun code () -> Authentication.get_tokens_initial code)
-  |> Command.run
-
-let determine_auth_type code =
-  let check_status status =
-    match status with
-    | "true" -> access_token_req 
-    | "false" -> initial_access_token_req
-    | _ -> raise_s (Sexp.List [ Sexp.Atom "Code"; Sexp.Atom "Not"; Sexp.Atom "Recognized"])
-  in
-  (fun (_,status) -> check_status status) (Credentials.read_code code)
