@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/tottenhamjm/tda_ocaml.svg?branch=master)](https://travis-ci.com/tottenhamjm/tda_ocaml)
+
 # TDA_OCaml
 
 ## An OCaml wrapper for the [TDAmeritrade API](https://developer.tdameritrade.com/)
