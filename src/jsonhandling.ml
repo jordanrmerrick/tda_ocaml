@@ -32,7 +32,7 @@ let json_handle ~json ~order_type =
 let to_file (json : Yojson.Safe.t) ~(jsonfile : string) =
   Yojson.Safe.to_file jsonfile json
 
-let to_json_object ?(jsonfile="generic.json") ~output json =
+let to_json_object ~jsonfile ~output json =
   let is_json_file filename suffix =
     String.is_substring ~substring:suffix filename
   in
