@@ -18,7 +18,7 @@ open Core
 
 let api_options ?(cusip="") ?(index="") ?(symbol="") ?(orderid="") ?(accountid="") ?(savedorderid="") t =
   match t with
-  | `SEARCH -> "instruments"
+  | `SEARCH_INSTRUMENTS -> "instruments"
   | `GET_INSTRUMENT -> cusip |> sprintf "instruments/%s"
   | `HOURS -> "marketdata/hours"
   | `MOVERS -> index |> sprintf "marketdata/%s/movers"
@@ -42,7 +42,7 @@ let api_options ?(cusip="") ?(index="") ?(symbol="") ?(orderid="") ?(accountid="
 
 let api_to_string t =
   match t with
-  | `SEARCH -> "search"
+  | `SEARCH_INSTRUMENTS -> "search_instruments"
   | `GET_INSTRUMENT -> "get_instrument"
   | `HOURS -> "hours"
   | `MOVERS -> "movers"
@@ -66,7 +66,7 @@ let api_to_string t =
 
 let string_to_api s =
   match String.lowercase s with
-  | "search" -> `SEARCH
+  | "search_instruments" -> `SEARCH_INSTRUMENTS
   | "get_instrument" -> `GET_INSTRUMENT
   | "hours" -> `HOURS
   | "movers" -> `MOVERS
@@ -92,4 +92,5 @@ let string_to_api s =
 (* Temp function to satisfy external dependencies *)
 let json_options t =
   match t with
-  | _ as k -> k
+  | `SEARCH_INSTRUMENTS -> []
+  | _ -> []
