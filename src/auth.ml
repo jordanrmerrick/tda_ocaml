@@ -85,10 +85,7 @@ module Compat = struct
         begin
         match arr.(n) with
           | "%" ->
-          let add_to_list ls1 ls2 =
-            List.rev_append (List.rev ls1) ls2
-          in
-          helper ((String.concat ~sep:"" (add_to_list [] [arr.(n); arr.(n-1); arr.(n-2)]))::ls) arr (n-3)
+          helper ((String.concat ~sep:"" [arr.(n); arr.(n-1); arr.(n-2)])::ls) arr (n-3)
         | _ as v -> helper (v::ls) arr (n-1)
       end
     in
@@ -108,7 +105,8 @@ module Json = struct
     ; "expires_in"
     ; "scope"
     ; "refresh_token_expires_in"
-    ] 
+    ]
+    [@@deprecated "expected_vals will be kept until further notice for compatability but is not actively used."]
 
   let handle_json ~(json : string) (k : string) =
     match Yojson.Safe.from_string json with
@@ -124,9 +122,11 @@ module Json = struct
       | None -> Some (k |> sprintf "%s not found")
      end
     | _ -> None
+    [@@deprecated "handle_json will be kept until further notice for compatability but is not actively used."]
 
   let find_all_values ~(json : string) =
     List.map ~f:(handle_json ~json:json) expected_vals
+  [@@deprecated]
 
   let find_all_values_exn ~(json : string)=
     let matcher = function
@@ -134,6 +134,7 @@ module Json = struct
       | Some x -> x
     in
     List.map ~f:matcher (find_all_values ~json:json)
+  [@@deprecated]
 
   let to_json ~(json : string) =
     Yojson.Safe.from_string json
@@ -166,7 +167,7 @@ module Authentication = struct
     | [] -> ""
     | x::_ -> x
 
-  (* Exposed API for initial authorization*)
+  (* Exposed API for initial authorization *)
   let sent_url ?(redirecturi="") ?(clientid="") ~(m : string) =
     let meth m =
       match String.lowercase m with
@@ -179,7 +180,8 @@ module Authentication = struct
       sprintf "https://auth.tdameritrade.com/auth?response_type=code&%s" (Compat.encode_url (url data))
     in
     parse_special_chars (meth m)
-  
+      
+  (* Exposed API for initial authorization *)
   let get_code_info (s : string) = 
     printf "Open this url in your browser and login:\n%s" s;
     print_endline "\n\nEnter the returned url into \"code.json\"\n\n";
@@ -190,8 +192,7 @@ module Authentication = struct
     Compat.decode_url element
 
   let request_body ~grant_type ~refresh_token ~access_type ~code ~client_id ~redirect_uri =
-    {
-      grant_type = grant_type
+    { grant_type = grant_type
     ; refresh_token = refresh_token
     ; access_type = access_type
     ; code = code
