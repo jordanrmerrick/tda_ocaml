@@ -3,4 +3,6 @@ _build
 dune~
 tda_ocaml.code-workspace
 tda
-.vscode
+/.vscode
+/scripts
+/tests

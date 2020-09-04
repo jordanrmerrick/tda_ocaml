@@ -254,3 +254,4 @@ module Authentication = struct
     | _ as k -> let n = k |> sprintf "Expected 1 argument, got %d" in raise_s (Sexp.of_string n)
 
 end
+
