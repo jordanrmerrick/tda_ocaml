@@ -187,8 +187,8 @@ module Authentication = struct
     print_endline "\n\nEnter the returned url into \"code.json\"\n\n";
     print_endline "Change the \"exists\" entry to \"true\". Initial authorization is complete!\n\n"
 
-  let build_code = 
-    let element = get_first_element (Str.split (Str.regexp "code=?") ((fun (k,_) -> k) (Credentials.read_code "code.json"))) in
+  let build_code ~(file_name : string)= 
+    let element = get_first_element (Str.split (Str.regexp "code=?") ((fun (k,_) -> k) (Credentials.read_code file_name))) in
     Compat.decode_url element
 
   let request_body ~grant_type ~refresh_token ~access_type ~code ~client_id ~redirect_uri =
