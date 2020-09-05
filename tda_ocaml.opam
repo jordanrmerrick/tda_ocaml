@@ -5,7 +5,7 @@ homepage: "https://github.com/tottenhamjm/tda_ocaml"
 bug-reports: "https://github.com/tottenhamjm/tda_ocaml/issues"
 license: "MIT"
 name: "tda_ocaml"
-version: "0.1"
+version: "0.1.2"
 build: [
     ["dune" "build" "-p" name "-j" jobs]
 ]
