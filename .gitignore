@@ -4,4 +4,4 @@ dune~
 tda_ocaml.code-workspace
 tda
 .vscode
-/scripts
+scripts
