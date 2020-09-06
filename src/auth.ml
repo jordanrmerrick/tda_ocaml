@@ -173,23 +173,15 @@ module Authentication = struct
     | x::_ -> x
 
   (* Exposed API for initial authorization *)
-  let sent_url ?(redirecturi="") ?(clientid="") ~(m : string) =
-    let meth m =
-      match String.lowercase m with
-      | "json" -> let c = read_credentials "credentials.json" in c
-      | "string" -> (clientid, redirecturi)
-      | _ -> raise_s (Sexp.of_string "Invalid_argument")
-    in
-    let parse_special_chars data =
-      let url data =(fun (k,v) -> sprintf "redirect_uri=%s&clientid=%s@AMER.OAUTHAP" v k) data in
-      sprintf "https://auth.tdameritrade.com/auth?response_type=code&%s" (Compat.encode_url (url data))
-    in
-    parse_special_chars (meth m)
+  let sent_url ~(redirect_uri : string) ~(client_id : string) =
+    let url = sprintf "redirect_uri=%s&clientid=%s@AMER.OAUTHAP" redirect_uri client_id in
+    sprintf "https://auth.tdameritrade.com/auth?response_type=code&%s" (Compat.encode_url url)
+
       
   (* Exposed API for initial authorization *)
   let get_code_info (s : string) = 
     printf "Open this url in your browser and login:\n%s" s;
-    print_endline "\n\nEnter the returned url into \"code.json\"\n\n";
+    print_endline "\n\nEnter the returned url as the code when calling access_token_initial\n\n";
     print_endline "Change the \"exists\" entry to \"true\". Initial authorization is complete!\n\n"
 
   let build_code ~(file_name : string)= 
