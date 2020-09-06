@@ -1,3 +1,4 @@
 (executable
  (name auth_test)
- (libraries tda_ocaml core))
+ (libraries tda_ocaml core async)
+)
