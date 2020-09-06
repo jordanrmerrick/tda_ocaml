@@ -245,6 +245,10 @@ module Authentication = struct
     let body = parse_body build_body in
     Cohttp_async.Client.post ~body:body ~headers:headers uri >>= fun (_, body) -> Cohttp_async.Body.to_string body >>| fun string -> (Json.to_json ~json:string)
 
+end 
+
+module Exposed = struct
+  include Authentication
   let access_token ~(refresh_token : string) ~(client_id : string) ~(redirect_uri : string) ~(code : string) =
     let requests = [code] in
     let cycle s = List.map ~f:(Jsonhandling.to_string) s in
@@ -255,4 +259,5 @@ module Authentication = struct
     let cycle s = List.map ~f:(Jsonhandling.to_string) s in
     Deferred.all (List.map ~f:(initial_access_token_f ~client_id:client_id ~redirect_uri:redirect_uri) requests) >>| fun results -> get_first_element (cycle results)
 
-end 
+end
+include Exposed
