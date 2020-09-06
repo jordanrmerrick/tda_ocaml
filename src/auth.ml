@@ -163,6 +163,11 @@ module Authentication = struct
     |> Body.of_string
 
   let get_first_element ls =
+    match ls with
+    | [] -> ""
+    | x::_ -> x
+
+  let get_first_element_rev ls =
     match List.rev ls with
     | [] -> ""
     | x::_ -> x
@@ -188,88 +193,72 @@ module Authentication = struct
     print_endline "Change the \"exists\" entry to \"true\". Initial authorization is complete!\n\n"
 
   let build_code ~(file_name : string)= 
-    let element = get_first_element (Str.split (Str.regexp "code=?") ((fun (k,_) -> k) (Credentials.read_code file_name))) in
+    let element = get_first_element_rev (Str.split (Str.regexp "code=?") ((fun (k,_) -> k) (Credentials.read_code file_name))) in
     Compat.decode_url element
 
-  let request_body ~grant_type ~refresh_token ~access_type ~code ~client_id ~redirect_uri =
-    { grant_type = grant_type
-    ; refresh_token = refresh_token
-    ; access_type = access_type
-    ; code = code
-    ; client_id = client_id
-    ; redirect_uri = redirect_uri
-    }
+  let request_body ~refresh_token ~code ~client_id ~redirect_uri ~initial =
+    match initial with
+    | true -> 
+      { grant_type = "authorization_code"
+      ; refresh_token = ""
+      ; access_type = "offline"
+      ; code = code
+      ; client_id = client_id
+      ; redirect_uri = redirect_uri
+      }
+    | false -> 
+      { grant_type = "refresh_token"
+      ; refresh_token = refresh_token
+      ; access_type = ""
+      ; code = code
+      ; client_id = client_id
+      ; redirect_uri = redirect_uri
+      }
 
-  let initial_access_token (code : string) =
+  let initial_access_token_f ~(client_id : string) ~(redirect_uri : string) (code : string) =
     let uri = Uri.of_string "https://api.tdameritrade.com/v1/oauth2/token" in
     let headers = [("Content-Type", "application/x-www-form-urlencoded")] in
     let headers = Header.of_list headers in
     let build_body =
-      let build = (fun (k,v) -> ((sprintf "%s@AMER.OAUTHAP" k), v)) (read_credentials "credentials.json") in
-      let req c r = 
-        request_body 
-        ~grant_type:"authorization_code" 
-        ~refresh_token:"" 
-        ~access_type:"offline" 
-        ~code:code 
-        ~client_id:c 
-        ~redirect_uri:r in
-      (fun (k,v) -> req k v) build
+      request_body 
+      ~refresh_token:""  
+      ~code:code
+      ~client_id:client_id
+      ~redirect_uri:redirect_uri
+      ~initial:true
     in
     let body = parse_body build_body in
     Cohttp_async.Client.post ~body:body ~headers:headers uri >>= fun (_, body) -> Cohttp_async.Body.to_string body >>| fun string -> (Json.to_json ~json:string)
 
-
-  let access_token ?(token_source="tokens.json") ?(credentials_source="credentials.json") (code : string)=
+  let access_token_f ~(refresh_token : string) ~(client_id : string) ~(redirect_uri : string) (code : string) =
     let uri = Uri.of_string "https://api.tdameritrade.com/v1/oauth2/token" in
     let headers = [("Content-Type", "application/x-www-form-urlencoded")] in
     let headers = Header.of_list headers in
     let build_body = 
-      let creds = (fun (k,v) -> ((sprintf "%s@AMER.OAUTHAP" k), v)) (read_credentials credentials_source) in
-      let tokens = read_tokens token_source in
-      let req ~client_id ~redirect ~refresh_token = 
-        request_body 
-        ~grant_type:"refresh_token" 
-        ~refresh_token:refresh_token 
-        ~access_type:"" 
-        ~code:code
-        ~client_id:client_id
-        ~redirect_uri:redirect in
-      req ~client_id:((fun (k,_) -> k) creds) ~redirect:((fun (_,v) -> v) creds) ~refresh_token:((fun (_,j,_) -> j) tokens)
+      request_body 
+      ~refresh_token:refresh_token 
+      ~code:code
+      ~client_id:client_id
+      ~redirect_uri:redirect_uri
+      ~initial:false
     in
     let body = parse_body build_body in
     Cohttp_async.Client.post ~body:body ~headers:headers uri >>= fun (_, body) -> Cohttp_async.Body.to_string body >>| fun string -> (Json.to_json ~json:string)
 
-<<<<<<< Updated upstream
-  let get_tokens_reg ?(filename="generic.json") requests ~(output : string) =
-    let cycle s = List.map ~f:(Jsonhandling.handle_json ~jsonfile:filename ~outfile:output) s in
-    match List.length requests with
-    | 0 -> raise_s (Sexp.of_string "Expected 1 argument, got 0")
-    | 1 -> Deferred.all (List.map requests ~f:access_token) >>| fun results -> cycle results
-    | _ as k -> let n = k |> sprintf "Expected 1 argument, got %d" in raise_s (Sexp.of_string n)
-
-  let get_tokens_initial requests =
-    match List.length requests with
-    | 0 -> raise_s (Sexp.of_string "Expected 1 argument, got 0")
-    | 1 -> Deferred.all (List.map requests ~f:initial_access_token) >>| fun results -> results
-    | _ as k -> let n = k |> sprintf "Expected 1 argument, got %d" in raise_s (Sexp.of_string n)
-=======
 end 
 
 module Exposed = struct
-  include Authentication
 
   let access_token ~(refresh_token : string) ~(client_id : string) ~(redirect_uri : string) ~(code : string) =
     let requests = [code] in
     let cycle s = List.map ~f:(Jsonhandling.to_string) s in
     Deferred.all (List.map ~f:(access_token_f ~refresh_token:refresh_token ~client_id:client_id ~redirect_uri:redirect_uri) requests) >>| fun results -> get_first_element (cycle results)
->>>>>>> Stashed changes
 
-end
+  let access_token_initial ~(client_id : string) ~(redirect_uri : string) ~(code : string) =
+    let requests = [code] in
+    let cycle s = List.map ~f:(Jsonhandling.to_string) s in
+    Deferred.all (List.map ~f:(initial_access_token_f ~client_id:client_id ~redirect_uri:redirect_uri) requests) >>| fun results -> get_first_element (cycle results)
 
-<<<<<<< Updated upstream
-=======
 end
 
 include Exposed
->>>>>>> Stashed changes

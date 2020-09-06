@@ -35,7 +35,3 @@ let t_d s1 s2 s3 =
   ) t
 
 let decode_test = t_d "ThereIsNoEncodingInThis" "ThereIs%2ASome%2AEncodingIn%26This" "T%24%23HereI%2ASL%28%29otsIfasdnklw%242u9a0d"
-(*
-  strings = "ThereIsNoEncodingInThis" "ThereIs*Some*EncodingIn&This" "T$#HereI*SL()otsIfasdnklw$2u9a0d"
-  responses = "ThereIsNoEncodingInThis" "ThereIs%2ASome%2AEncodingIn%26This" "AT%24%23HereI%2ASL%28%29otsIfasdnklw%242u9a0d"
-*)
