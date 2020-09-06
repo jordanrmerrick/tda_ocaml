@@ -240,6 +240,7 @@ module Authentication = struct
     let body = parse_body build_body in
     Cohttp_async.Client.post ~body:body ~headers:headers uri >>= fun (_, body) -> Cohttp_async.Body.to_string body >>| fun string -> (Json.to_json ~json:string)
 
+<<<<<<< Updated upstream
   let get_tokens_reg ?(filename="generic.json") requests ~(output : string) =
     let cycle s = List.map ~f:(Jsonhandling.handle_json ~jsonfile:filename ~outfile:output) s in
     match List.length requests with
@@ -252,6 +253,23 @@ module Authentication = struct
     | 0 -> raise_s (Sexp.of_string "Expected 1 argument, got 0")
     | 1 -> Deferred.all (List.map requests ~f:initial_access_token) >>| fun results -> results
     | _ as k -> let n = k |> sprintf "Expected 1 argument, got %d" in raise_s (Sexp.of_string n)
+=======
+end 
+
+module Exposed = struct
+  include Authentication
+
+  let access_token ~(refresh_token : string) ~(client_id : string) ~(redirect_uri : string) ~(code : string) =
+    let requests = [code] in
+    let cycle s = List.map ~f:(Jsonhandling.to_string) s in
+    Deferred.all (List.map ~f:(access_token_f ~refresh_token:refresh_token ~client_id:client_id ~redirect_uri:redirect_uri) requests) >>| fun results -> get_first_element (cycle results)
+>>>>>>> Stashed changes
 
 end
 
+<<<<<<< Updated upstream
+=======
+end
+
+include Exposed
+>>>>>>> Stashed changes
