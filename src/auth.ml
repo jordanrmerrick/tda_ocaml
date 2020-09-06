@@ -215,7 +215,7 @@ module Authentication = struct
       ; redirect_uri = redirect_uri
       }
 
-  let initial_access_token_f ~(client_id : string) ~(redirect_uri : string) code =
+  let initial_access_token_f ~(client_id : string) ~(redirect_uri : string) (code : string) =
     let uri = Uri.of_string "https://api.tdameritrade.com/v1/oauth2/token" in
     let headers = [("Content-Type", "application/x-www-form-urlencoded")] in
     let headers = Header.of_list headers in
@@ -230,7 +230,7 @@ module Authentication = struct
     let body = parse_body build_body in
     Cohttp_async.Client.post ~body:body ~headers:headers uri >>= fun (_, body) -> Cohttp_async.Body.to_string body >>| fun string -> (Json.to_json ~json:string)
 
-  let access_token_f ~(refresh_token : string) ~(client_id : string) ~(redirect_uri : string) code =
+  let access_token_f ~(refresh_token : string) ~(client_id : string) ~(redirect_uri : string) (code : string) =
     let uri = Uri.of_string "https://api.tdameritrade.com/v1/oauth2/token" in
     let headers = [("Content-Type", "application/x-www-form-urlencoded")] in
     let headers = Header.of_list headers in
@@ -254,6 +254,5 @@ module Authentication = struct
     let requests = [code] in
     let cycle s = List.map ~f:(Jsonhandling.to_string) s in
     Deferred.all (List.map ~f:(initial_access_token_f ~client_id:client_id ~redirect_uri:redirect_uri) requests) >>| fun results -> get_first_element (cycle results)
-
 
 end 
