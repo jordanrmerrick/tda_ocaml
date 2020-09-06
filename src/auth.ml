@@ -198,7 +198,7 @@ module Authentication = struct
 
   let request_body ~refresh_token ~code ~client_id ~redirect_uri ~initial =
     match initial with
-    | true -> 
+      true -> 
       { grant_type = "authorization_code"
       ; refresh_token = ""
       ; access_type = "offline"
