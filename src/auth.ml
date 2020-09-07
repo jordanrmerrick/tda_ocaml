@@ -15,7 +15,6 @@
   }}}*)
 
 open Core
-open Credentials
 open Cohttp
 open Cohttp_async
 open Async
@@ -86,7 +85,7 @@ module Compat = struct
         match arr.(n) with
           | "%" ->
           helper ((String.concat ~sep:"" [arr.(n); arr.(n-1); arr.(n-2)])::ls) arr (n-3)
-        | _ as v -> helper (v::ls) arr (n-1)
+          | _ as v -> helper (v::ls) arr (n-1)
       end
     in
     let a = string_to_string_array (String.rev s) in
@@ -172,22 +171,6 @@ module Authentication = struct
     | [] -> ""
     | x::_ -> x
 
-  (* Exposed API for initial authorization *)
-  let sent_url ~(redirect_uri : string) ~(client_id : string) =
-    let url = sprintf "redirect_uri=%s&clientid=%s@AMER.OAUTHAP" redirect_uri client_id in
-    sprintf "https://auth.tdameritrade.com/auth?response_type=code&%s" (Compat.encode_url url)
-
-      
-  (* Exposed API for initial authorization *)
-  let get_code_info (s : string) = 
-    printf "Open this url in your browser and login:\n%s" s;
-    print_endline "\n\nEnter the returned url as the code when calling access_token_initial\n\n";
-    print_endline "Change the \"exists\" entry to \"true\". Initial authorization is complete!\n\n"
-
-  let build_code ~(file_name : string)= 
-    let element = get_first_element_rev (Str.split (Str.regexp "code=?") ((fun (k,_) -> k) (Credentials.read_code file_name))) in
-    Compat.decode_url element
-
   let request_body ~refresh_token ~code ~client_id ~redirect_uri ~initial =
     match initial with
       true -> 
@@ -202,7 +185,7 @@ module Authentication = struct
       { grant_type = "refresh_token"
       ; refresh_token = refresh_token
       ; access_type = ""
-      ; code = code
+      ; code = ""
       ; client_id = client_id
       ; redirect_uri = redirect_uri
       }
@@ -240,16 +223,34 @@ module Authentication = struct
 end 
 
 module Exposed = struct
-  include Authentication
+
+    let sent_url ~(redirect_uri : string) ~(client_id : string) =
+      let url = sprintf "redirect_uri=%s&clientid=%s@AMER.OAUTHAP" redirect_uri client_id in
+      sprintf "https://auth.tdameritrade.com/auth?response_type=code&%s" (Compat.encode_url url)
+  
+    let get_code_info (s : string) = 
+      printf "Open this url in your browser and login:\n%s" s;
+      print_endline "\n\nEnter the returned url as the code when calling access_token_initial\n\n";
+      print_endline "Change the \"exists\" entry to \"true\". Initial authorization is complete!\n\n"
+  
+    let build_code code_str : string = 
+      let remove_first_char s =
+        match s.[0] with
+        | '?' -> s
+        | _ -> s
+      in
+      let element = remove_first_char (Authentication.get_first_element_rev (Str.split (Str.regexp "code=?") code_str)) in
+      Compat.decode_url element
+
   let access_token ~(refresh_token : string) ~(client_id : string) ~(redirect_uri : string) ~(code : string) =
     let requests = [code] in
     let cycle s = List.map ~f:(Jsonhandling.to_string) s in
-    Deferred.all (List.map ~f:(access_token_f ~refresh_token:refresh_token ~client_id:client_id ~redirect_uri:redirect_uri) requests) >>| fun results -> get_first_element (cycle results)
+    Deferred.all (List.map ~f:(Authentication.access_token_f ~refresh_token:refresh_token ~client_id:client_id ~redirect_uri:redirect_uri) requests) >>| fun results -> Authentication.get_first_element (cycle results)
 
   let access_token_initial ~(client_id : string) ~(redirect_uri : string) ~(code : string) =
     let requests = [code] in
     let cycle s = List.map ~f:(Jsonhandling.to_string) s in
-    Deferred.all (List.map ~f:(initial_access_token_f ~client_id:client_id ~redirect_uri:redirect_uri) requests) >>| fun results -> get_first_element (cycle results)
+    Deferred.all (List.map ~f:(Authentication.initial_access_token_f ~client_id:client_id ~redirect_uri:redirect_uri) requests) >>| fun results -> Authentication.get_first_element (cycle results)
 
 end
 include Exposed

@@ -18,27 +18,27 @@ open Core
 
 let api_options ?(cusip="") ?(index="") ?(symbol="") ?(orderid="") ?(accountid="") ?(savedorderid="") t =
   match t with
-  | `SEARCH_INSTRUMENTS -> "instruments"
-  | `GET_INSTRUMENT -> cusip |> sprintf "instruments/%s"
-  | `HOURS -> "marketdata/hours"
-  | `MOVERS -> index |> sprintf "marketdata/%s/movers"
-  | `OPTION_CHAIN -> "marketdata/chains"
-  | `PRICE_HISTORY -> symbol |> sprintf "marketdata/%s/pricehistory"
-  | `GET_QUOTE -> symbol |> sprintf "marketdata/%s/quotes"
-  | `GET_QUOTES -> "marketdata/quotes"
-  | `CANCEL_ORDER
-  | `GET_ORDER
-  | `REPLACE_ORDER -> accountid |> sprintf "accounts/%s/orders/%s" orderid
-  | `GET_ORDERS_BY_PATH -> accountid |> sprintf "accounts/%s/orders"
-  | `PLACE_ORDER -> accountid |> sprintf "accounts/%s/orders"
-  | `GET_ORDER_BY_QUERY -> "orders"
-  | `CREATE_SAVED_ORDER
-  | `GET_SAVED_ORDER_BY_PATH -> accountid |> sprintf "accounts/%s/savedorders"
-  | `DELETE_SAVED_ORDER
-  | `GET_SAVED_ORDER
-  | `REPLACE_SAVED_ORDER -> accountid |> sprintf "accounts/%s/savedorders/%s" savedorderid
-  | `GET_ACCOUNT -> accountid |> sprintf "accounts/%s"
-  | `GET_ACCOUNTS -> "accounts"
+  | `SEARCH_INSTRUMENTS -> "instruments", `GET
+  | `GET_INSTRUMENT -> cusip |> sprintf "instruments/%s", `GET
+  | `HOURS -> "marketdata/hours", `GET
+  | `MOVERS -> index |> sprintf "marketdata/%s/movers", `GET
+  | `OPTION_CHAIN -> "marketdata/chains", `GET
+  | `PRICE_HISTORY -> symbol |> sprintf "marketdata/%s/pricehistory", `GET
+  | `GET_QUOTE -> symbol |> sprintf "marketdata/%s/quotes", `GET
+  | `GET_QUOTES -> "marketdata/quotes", `GET
+  | `CANCEL_ORDER -> accountid |> sprintf "accounts/%s/orders/%s" orderid, `DELETE
+  | `GET_ORDER -> accountid |> sprintf "accounts/%s/orders/%s" orderid, `GET
+  | `REPLACE_ORDER -> accountid |> sprintf "accounts/%s/orders/%s" orderid, `PUT
+  | `GET_ORDERS_BY_PATH -> accountid |> sprintf "accounts/%s/orders", `GET
+  | `PLACE_ORDER -> accountid |> sprintf "accounts/%s/orders", `POST
+  | `GET_ORDER_BY_QUERY -> "orders", `GET
+  | `CREATE_SAVED_ORDER -> accountid |> sprintf "accounts/%s/savedorders", `POST
+  | `GET_SAVED_ORDERS_BY_PATH -> accountid |> sprintf "accounts/%s/savedorders", `GET
+  | `DELETE_SAVED_ORDER -> accountid |> sprintf "accounts/%s/savedorders/%s" savedorderid, `DELETE
+  | `GET_SAVED_ORDER -> accountid |> sprintf "accounts/%s/savedorders/%s" savedorderid, `GET
+  | `REPLACE_SAVED_ORDER -> accountid |> sprintf "accounts/%s/savedorders/%s" savedorderid, `PUT
+  | `GET_ACCOUNT -> accountid |> sprintf "accounts/%s", `GET
+  | `GET_ACCOUNTS -> "accounts", `GET
 
 let api_to_string t =
   match t with
@@ -57,7 +57,7 @@ let api_to_string t =
   | `PLACE_ORDER -> "place_order"
   | `GET_ORDER_BY_QUERY -> "get_order_by_query"
   | `CREATE_SAVED_ORDER -> "create_saved_order"
-  | `GET_SAVED_ORDER_BY_PATH -> "get_saved_order_by_path"
+  | `GET_SAVED_ORDERS_BY_PATH -> "get_saved_order_by_path"
   | `DELETE_SAVED_ORDER -> "delete_saved_order"
   | `GET_SAVED_ORDER -> "get_saved_order"
   | `REPLACE_SAVED_ORDER -> "replace_saved_order"
@@ -81,7 +81,7 @@ let string_to_api s =
   | "place_order" -> `PLACE_ORDER
   | "get_order_by_query" -> `GET_ORDER_BY_QUERY
   | "create_saved_order" -> `CREATE_SAVED_ORDER
-  | "get_saved_order_by_path" -> `GET_SAVED_ORDER_BY_PATH
+  | "get_saved_orders_by_path" -> `GET_SAVED_ORDERS_BY_PATH
   | "delete_saved_order" -> `DELETE_SAVED_ORDER
   | "get_saved_order" -> `GET_SAVED_ORDER
   | "replace_saved_order" -> `REPLACE_SAVED_ORDER
