@@ -1,6 +1,7 @@
 open Core
 open Cohttp
 open Cohttp_async
+open Async
 
 (* For now, we will only focus on urlencoded bodies, not json objects *)
 let build_body ls =
@@ -38,6 +39,13 @@ let rt_t_m (k,v) body headers =
     let uri = Uri.of_string (sprintf "%s%s" "https://api.tdameritrade.com/v1/" k) in
     Client.call ~body:body ~headers:headers v uri 
   | _ -> raise_s (Sexp.of_string "That HTTP method is not a valid way to access TDAmeritrade's API. Please use `GET, `POST, `DELETE, or `PUT.")
+
+let handle_response (cbt : (Response.t * Cohttp_async.Body.t) Async_kernel.Deferred.t) =
+  cbt >>= fun (resp, body) -> 
+    match Cohttp.Response.(resp.status) with
+    | #Code.success_status ->
+      Body.to_string body >>| fun s -> s
+    | _ -> raise_s (Response.sexp_of_t resp)
 
 module Exposed = struct
   (* Temporary function to build upon *)
