@@ -1,3 +1,5 @@
+# UPDATE: I am currently in the process of switching computers so commits/pushes will slow down for the next few days.
+
 # TDA_OCaml
 
 ### Release Version
